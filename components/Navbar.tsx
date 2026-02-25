@@ -10,28 +10,28 @@ export default function Navbar() {
     <nav className="bg-gray-900 text-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="text-xl font-bold tracking-wider">
+          <Link href="/" className="text-white text-lg font-light tracking-wider">
             INFRAMEX
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="hover:text-gray-300 transition">
+            <Link href="/" className="text-sm text-gray-200 hover:text-white transition">
               Inicio
             </Link>
-            <Link href="/catalogo" className="hover:text-gray-300 transition">
+            <Link href="/catalogo" className="text-sm text-gray-200 hover:text-white transition">
               Catálogo
             </Link>
-            <Link href="/nosotros" className="hover:text-gray-300 transition">
+            <Link href="/nosotros" className="text-sm text-gray-200 hover:text-white transition">
               Nosotros
             </Link>
-            <Link href="/contacto" className="hover:text-gray-300 transition">
+            <Link href="/contacto" className="text-sm text-gray-200 hover:text-white transition">
               Contacto
             </Link>
             <a
-              href="https://wa.me/5210000000000"
+              href="https://wa.me/524481519373"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 border border-white rounded-md text-sm hover:bg-white hover:text-gray-900 transition"
+              className="inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm hover:shadow transform hover:-translate-y-0.5"
             >
               Cotizar
             </a>
@@ -55,23 +55,23 @@ export default function Navbar() {
 
       {isOpen && (
         <div className="md:hidden bg-gray-800 px-4 py-3 space-y-2">
-          <Link href="/" className="block py-2 hover:text-gray-300" onClick={() => setIsOpen(false)}>
+          <Link href="/" className="block py-2 text-sm text-gray-200 hover:text-white transition" onClick={() => setIsOpen(false)}>
             Inicio
           </Link>
-          <Link href="/catalogo" className="block py-2 hover:text-gray-300" onClick={() => setIsOpen(false)}>
+          <Link href="/catalogo" className="block py-2 text-sm text-gray-200 hover:text-white transition" onClick={() => setIsOpen(false)}>
             Catálogo
           </Link>
-          <Link href="/nosotros" className="block py-2 hover:text-gray-300" onClick={() => setIsOpen(false)}>
+          <Link href="/nosotros" className="block py-2 text-sm text-gray-200 hover:text-white transition" onClick={() => setIsOpen(false)}>
             Nosotros
           </Link>
-          <Link href="/contacto" className="block py-2 hover:text-gray-300" onClick={() => setIsOpen(false)}>
+          <Link href="/contacto" className="block py-2 text-sm text-gray-200 hover:text-white transition" onClick={() => setIsOpen(false)}>
             Contacto
           </Link>
           <a
-            href="https://wa.me/5210000000000"
+            href="https://wa.me/524481519373"
             target="_blank"
             rel="noopener noreferrer"
-            className="block py-2 hover:text-gray-300"
+            className="block py-2 text-sm text-gray-200 hover:text-white transition"
             onClick={() => setIsOpen(false)}
           >
             Cotizar
