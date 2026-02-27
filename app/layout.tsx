@@ -1,22 +1,15 @@
 import "./globals.css";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import type { ReactNode } from "react";
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <html lang="es">
-      <body className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden">
-        <Navbar />
-
-        <main className="flex-1">
-          {children}
-        </main>
-
-        <Footer />
+      <body className="min-h-screen bg-gray-50 overflow-x-hidden">
+        {children}
       </body>
     </html>
   );

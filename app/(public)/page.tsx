@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import CotizacionForm from "@/components/CotizacionForm";
+import CotizacionForm from "@/app/(public)/components/CotizacionForm";
 
 export default function Home() {
   return (
