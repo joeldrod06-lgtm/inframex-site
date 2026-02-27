@@ -308,7 +308,6 @@ export default function ContactoPage() {
                     {info.telefono_secundario && (
                       <p className="text-gray-600 text-sm">{info.telefono_secundario}</p>
                     )}
-                    <p className="text-sm text-gray-500">{info.horario_semana.split(':')[1] || info.horario_semana}</p>
                   </div>
                 </div>
 
