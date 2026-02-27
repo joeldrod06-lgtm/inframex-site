@@ -34,7 +34,7 @@ export default function AdminSidebar() {
           className="block px-4 py-2 rounded hover:bg-gray-800 transition"
         >
           Cotizaciones
-        </Link>
+        </Link> 
 
         <Link
           href="/admin/catalogo"
