@@ -1,13 +1,30 @@
 import { Resend } from "resend";
 import { supabase } from "@/lib/supabase";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
+    // ✅ Validar API key en runtime
+    if (!process.env.RESEND_API_KEY) {
+      return NextResponse.json(
+        { error: "RESEND_API_KEY no está configurada" },
+        { status: 500 }
+      );
+    }
+
+    // ✅ Crear instancia aquí (NO arriba)
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
     const { nombre, email, mensaje } = await req.json();
 
-    // 1. Guardar en Supabase
+    if (!nombre || !email || !mensaje) {
+      return NextResponse.json(
+        { error: "Todos los campos son obligatorios" },
+        { status: 400 }
+      );
+    }
+
+    // 1️⃣ Guardar en Supabase
     const { error } = await supabase.from("cotizaciones").insert([
       {
         nombre,
@@ -17,13 +34,16 @@ export async function POST(req: Request) {
     ]);
 
     if (error) {
-      return Response.json({ error: error.message }, { status: 500 });
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
     }
 
-    // 2. Enviar email
-    await resend.emails.send({
+    // 2️⃣ Enviar email
+    const { error: emailError } = await resend.emails.send({
       from: "INFRAMEX <onboarding@resend.dev>",
-      to: ["joeldrod06@gmail.com"], 
+      to: ["joeldrod06@gmail.com"],
       subject: "Nueva solicitud de cotización",
       html: `
         <h2>Nueva cotización</h2>
@@ -34,8 +54,20 @@ export async function POST(req: Request) {
       `,
     });
 
-    return Response.json({ success: true });
+    if (emailError) {
+      return NextResponse.json(
+        { error: emailError.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+
   } catch (err) {
-    return Response.json({ error: "Error del servidor" }, { status: 500 });
+    console.error("Error en API cotizaciones:", err);
+    return NextResponse.json(
+      { error: "Error del servidor" },
+      { status: 500 }
+    );
   }
 }
