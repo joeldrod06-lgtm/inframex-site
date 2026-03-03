@@ -2,21 +2,23 @@
 @import "tailwindcss/theme";
 @import "tailwindcss/utilities";
 
-* {
-  box-sizing: border-box;
-}
-
 html, body {
   margin: 0;
   padding: 0;
-  background-color: #f9fafb;
+  height: 100%;
+  background-color: #111827;
+
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: auto;
+}
+
+@media (min-width: 768px) {
+  html {
+    overscroll-behavior: none;
+  }
 }
 
 body {
-  overflow-y: auto;
   overflow-x: hidden;
-}
-
-html {
-  overscroll-behavior: none;
+  overflow-y: auto;
 }

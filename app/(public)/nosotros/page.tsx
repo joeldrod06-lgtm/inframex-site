@@ -40,8 +40,10 @@ export default function NosotrosPage() {
   const [equipo, setEquipo] = useState<MiembroEquipo[]>([]);
   const [metas, setMetas] = useState<Meta[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     cargarDatos();
   }, []);
 
@@ -131,170 +133,88 @@ export default function NosotrosPage() {
     }
   };
 
+  // Prevenir hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500">Cargando...</div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Cargando...</p>
+        <div className="text-gray-500">Cargando...</div>
       </div>
     );
   }
 
   return (
-    <>
-      {/* Hero con fondo de puntos */}
-      <section className="bg-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32 relative">
-          <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light tracking-tight text-gray-900 leading-[1.1] mb-3">
-              INFRAMEX
-            </h1>
-            <p className="text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
-              Una empresa joven con ganas de crecer junto a tus proyectos.
-            </p>
-            <div className="w-20 h-0.5 bg-gray-300 mx-auto mt-6"></div>
-          </div>
+    <main className="min-h-screen bg-white">
+      {/* Hero Section - Título principal */}
+      <section className="relative bg-gradient-to-b from-blue-50 to-white pt-24 pb-16">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-center text-gray-900 mb-4">
+            Sobre Nosotros
+          </h1>
+          <p className="text-xl text-center text-gray-600 max-w-3xl mx-auto">
+            Conoce nuestra historia, valores y el equipo que hace posible cada entrega
+          </p>
         </div>
       </section>
 
-      {/* Nuestra historia */}
+      {/* Historia Section */}
       {historia && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <span className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                Nuestra historia
-              </span>
-              <h2 className="text-3xl md:text-4xl font-light text-gray-900 mt-2 mb-4">
-                {historia.titulo}
-              </h2>
-              <div className="w-20 h-0.5 bg-gray-300 mb-6"></div>
-              <div className="text-gray-500 leading-relaxed space-y-4">
-                {historia.descripcion.split('\n').map((parrafo, index) => (
-                  <p key={index}>{parrafo}</p>
-                ))}
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                  {historia.titulo}
+                </h2>
+                <p className="text-gray-600 leading-relaxed">
+                  {historia.descripcion}
+                </p>
               </div>
-            </div>
-            <div className="relative h-80 w-full group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-gray-300 to-gray-100 rounded-lg blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
-              <div className="relative h-full w-full rounded-lg overflow-hidden shadow-xl group-hover:shadow-2xl transition-all duration-500 transform group-hover:-translate-y-1 group-hover:scale-[1.02] bg-gray-100">
-                {historia.imagen_url ? (
+              {historia.imagen_url && (
+                <div className="relative h-96 rounded-lg overflow-hidden shadow-xl">
                   <Image
                     src={historia.imagen_url}
-                    alt={historia.titulo}
+                    alt="Nuestra historia"
                     fill
                     className="object-cover"
-                    unoptimized
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <span className="text-lg">Nuestro primer local</span>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </section>
       )}
 
-      {/* Lo que nos mueve */}
+      {/* Valores Section */}
       {valores.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <span className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-              Lo que nos mueve
-            </span>
-            <h2 className="text-3xl md:text-4xl font-light text-gray-900 mt-2 mb-4">
-              Pequeños en tamaño, grandes en compromiso
+        <section className="py-16 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+              Nuestros Valores
             </h2>
-            <div className="w-20 h-0.5 bg-gray-300 mx-auto"></div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-            {valores.map((valor) => (
-              <div key={valor.id} className="group text-center md:text-left hover:bg-gray-50 p-6 rounded-2xl transition-all duration-300">
-                <div className="w-14 h-14 bg-gray-100 group-hover:bg-gray-200 rounded-2xl flex items-center justify-center mx-auto md:mx-0 mb-5 transition-colors duration-300">
-                  {renderIcono(valor.icono)}
-                </div>
-                <h3 className="text-xl font-medium text-gray-900 mb-3 group-hover:text-gray-700 transition-colors">
-                  {valor.titulo}
-                </h3>
-                <p className="text-gray-500 leading-relaxed">{valor.descripcion}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* El equipo */}
-      {equipo.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <span className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-              El equipo
-            </span>
-            <h2 className="text-3xl md:text-4xl font-light text-gray-900 mt-2 mb-4">
-              Por ahora somos pocos, pero ponemos el alma en cada entrega
-            </h2>
-            <div className="w-20 h-0.5 bg-gray-300 mx-auto"></div>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-12">
-            {equipo.map((miembro) => (
-              <div key={miembro.id} className="text-center group">
-                <div className="relative w-32 h-32 md:w-40 md:h-40 mx-auto mb-4">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-gray-300 to-gray-100 rounded-full blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
-                  <div className="relative w-full h-full bg-gray-100 rounded-full flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 transform group-hover:-translate-y-1 group-hover:scale-[1.02] overflow-hidden">
-                    {miembro.imagen_url ? (
-                      <Image
-                        src={miembro.imagen_url}
-                        alt={miembro.nombre}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 md:w-16 md:h-16 text-gray-400">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    )}
+            <div className="grid md:grid-cols-3 gap-8">
+              {valores.map((valor) => (
+                <div
+                  key={valor.id}
+                  className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6 mx-auto">
+                    {renderIcono(valor.icono, "w-8 h-8 text-blue-600")}
                   </div>
-                </div>
-                <h3 className="text-lg font-medium text-gray-900">{miembro.nombre}</h3>
-                <p className="text-sm text-gray-500">{miembro.cargo}</p>
-                {miembro.descripcion && (
-                  <p className="text-sm text-gray-400 max-w-xs mt-2">{miembro.descripcion}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Metas que nos inspiran */}
-      {metas.length > 0 && (
-        <section className="bg-gray-50 py-16 md:py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-10">
-              <span className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                Metas que nos inspiran
-              </span>
-              <h2 className="text-3xl md:text-4xl font-light text-gray-900 mt-2 mb-4">
-                Pequeñas metas, grandes sueños
-              </h2>
-              <div className="w-20 h-0.5 bg-gray-300 mx-auto"></div>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-              {metas.map((meta) => (
-                <div key={meta.id} className="group text-center md:text-left hover:bg-white p-6 rounded-2xl transition-all duration-300">
-                  <div className="w-14 h-14 bg-gray-100 group-hover:bg-gray-200 rounded-2xl flex items-center justify-center mx-auto md:mx-0 mb-5 transition-colors duration-300">
-                    {renderIcono(meta.icono)}
-                  </div>
-                  <h3 className="text-xl font-medium text-gray-900 mb-3 group-hover:text-gray-700 transition-colors">
-                    {meta.titulo}
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3 text-center">
+                    {valor.titulo}
                   </h3>
-                  <p className="text-gray-500 leading-relaxed">{meta.descripcion}</p>
+                  <p className="text-gray-600 text-center">
+                    {valor.descripcion}
+                  </p>
                 </div>
               ))}
             </div>
@@ -302,32 +222,79 @@ export default function NosotrosPage() {
         </section>
       )}
 
-      {/* Llamada a la acción */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 text-center">
-        <h2 className="text-3xl md:text-4xl font-light text-gray-900 mb-4">¿Nos ayudas a crecer?</h2>
-        <p className="text-gray-500 text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
-          Cada proyecto que confías en nosotros es un paso más. Te esperamos.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="/catalogo"
-            className="inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gray-900 hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-          >
-            Ver catálogo
-          </Link>
-          <a
-            href="https://wa.me/524481519373"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex justify-center items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm hover:shadow transform hover:-translate-y-0.5"
-          >
-            <svg className="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.93 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.772zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.087-.177.181-.076.355.101.174.449.741.964 1.201.662.591 1.221.774 1.394.861.174.087.276.072.378-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087.159.058 1.011.477 1.184.564.173.087.289.13.332.202.043.072.043.419-.101.824z"/>
-            </svg>
-            WhatsApp
-          </a>
-        </div>
-      </section>
-    </>
+      {/* Equipo Section */}
+      {equipo.length > 0 && (
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">
+              Nuestro Equipo
+            </h2>
+            <p className="text-xl text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+              Profesionales comprometidos con tu satisfacción
+            </p>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {equipo.map((miembro) => (
+                <div
+                  key={miembro.id}
+                  className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                >
+                  {miembro.imagen_url ? (
+                    <div className="relative h-64 w-full">
+                      <Image
+                        src={miembro.imagen_url}
+                        alt={miembro.nombre}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-64 bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-400">Sin imagen</span>
+                    </div>
+                  )}
+                  <div className="p-6">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                      {miembro.nombre}
+                    </h3>
+                    <p className="text-blue-600 font-medium mb-3">
+                      {miembro.cargo}
+                    </p>
+                    {miembro.descripcion && (
+                      <p className="text-gray-600">{miembro.descripcion}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Metas Section */}
+      {metas.length > 0 && (
+        <section className="py-16 bg-blue-600">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center text-white mb-12">
+              Nuestras Metas
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {metas.map((meta) => (
+                <div
+                  key={meta.id}
+                  className="text-center text-white"
+                >
+                  <div className="flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6 mx-auto backdrop-blur-sm">
+                    {renderIcono(meta.icono, "w-10 h-10 text-white")}
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">{meta.titulo}</h3>
+                  <p className="text-white/90">{meta.descripcion}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+    </main>
   );
 }

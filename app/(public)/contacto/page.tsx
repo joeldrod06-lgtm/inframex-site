@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
-
 // Tipos
 interface ContactoInfo {
   telefono: string;
@@ -34,6 +33,7 @@ export default function ContactoPage() {
   const [info, setInfo] = useState<ContactoInfo | null>(null);
   const [redes, setRedes] = useState<RedSocial[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   
   // Estado del formulario
   const [formData, setFormData] = useState({
@@ -47,6 +47,7 @@ export default function ContactoPage() {
   const [mensajeError, setMensajeError] = useState("");
 
   useEffect(() => {
+    setMounted(true);
     cargarDatos();
   }, []);
 
@@ -85,121 +86,121 @@ export default function ContactoPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  console.log("🔵 ===== INICIO ENVÍO =====");
-  console.log("📝 Datos del formulario:", formData);
+    e.preventDefault();
+    
+    console.log("🔵 ===== INICIO ENVÍO =====");
+    console.log("📝 Datos del formulario:", formData);
 
-  console.log("🔍 Verificando cliente Supabase:", supabase ? "OK" : "NO INICIALIZADO");
-  
-  setEnviando(true);
-  setMensajeError("");
-  setMensajeExito(false);
+    console.log("🔍 Verificando cliente Supabase:", supabase ? "OK" : "NO INICIALIZADO");
+    
+    setEnviando(true);
+    setMensajeError("");
+    setMensajeExito(false);
 
-  // Validar campos
-  if (!formData.nombre.trim() || !formData.email.trim() || !formData.asunto.trim() || !formData.mensaje.trim()) {
-    console.log("❌ Validación falló: campos vacíos");
-    setMensajeError("Todos los campos son obligatorios");
-    setEnviando(false);
-    return;
-  }
+    // Validar campos
+    if (!formData.nombre.trim() || !formData.email.trim() || !formData.asunto.trim() || !formData.mensaje.trim()) {
+      console.log("❌ Validación falló: campos vacíos");
+      setMensajeError("Todos los campos son obligatorios");
+      setEnviando(false);
+      return;
+    }
 
-  if (!formData.email.includes('@') || !formData.email.includes('.')) {
-    console.log("❌ Validación falló: email inválido");
-    setMensajeError("Por favor ingresa un email válido");
-    setEnviando(false);
-    return;
-  }
+    if (!formData.email.includes('@') || !formData.email.includes('.')) {
+      console.log("❌ Validación falló: email inválido");
+      setMensajeError("Por favor ingresa un email válido");
+      setEnviando(false);
+      return;
+    }
 
-  try {
-    // 1. Guardar en Supabase
-    console.log("🟢 Intentando guardar en Supabase...");
-    console.log("📤 Datos a insertar:", {
-      nombre: formData.nombre,
-      email: formData.email,
-      asunto: formData.asunto,
-      mensaje: formData.mensaje.substring(0, 50) + "..."
-    });
-
-    const { data: supabaseData, error: supabaseError } = await supabase
-      .from("contacto_mensajes")
-      .insert([{
+    try {
+      // 1. Guardar en Supabase
+      console.log("🟢 Intentando guardar en Supabase...");
+      console.log("📤 Datos a insertar:", {
         nombre: formData.nombre,
         email: formData.email,
         asunto: formData.asunto,
-        mensaje: formData.mensaje,
-        leido: false,
-        respondido: false
-      }])
-      .select();
-
-    if (supabaseError) {
-      console.error("❌ Error de Supabase DETALLADO:", {
-        message: supabaseError.message,
-        details: supabaseError.details,
-        hint: supabaseError.hint,
-        code: supabaseError.code
+        mensaje: formData.mensaje.substring(0, 50) + "..."
       });
-      throw new Error(`Supabase error: ${supabaseError.message}`);
-    }
 
-    console.log("✅ Supabase OK. Datos guardados:", supabaseData);
+      const { data: supabaseData, error: supabaseError } = await supabase
+        .from("contacto_mensajes")
+        .insert([{
+          nombre: formData.nombre,
+          email: formData.email,
+          asunto: formData.asunto,
+          mensaje: formData.mensaje,
+          leido: false,
+          respondido: false
+        }])
+        .select();
 
-    // 2. Enviar email con Resend
-    console.log("🟢 Enviando a API de contacto...");
-    
-    const response = await fetch('/api/contacto', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
+      if (supabaseError) {
+        console.error("❌ Error de Supabase DETALLADO:", {
+          message: supabaseError.message,
+          details: supabaseError.details,
+          hint: supabaseError.hint,
+          code: supabaseError.code
+        });
+        throw new Error(`Supabase error: ${supabaseError.message}`);
+      }
 
-    console.log("📊 Status de respuesta:", response.status);
-    console.log("📊 Headers:", Object.fromEntries(response.headers.entries()));
+      console.log("✅ Supabase OK. Datos guardados:", supabaseData);
 
-    const result = await response.json();
-    console.log("📦 Respuesta de API:", result);
-
-    if (!response.ok) {
-      console.warn("⚠️ Error en API:", result);
-      setMensajeError("El mensaje se guardó pero hubo un problema al enviar la notificación por email. Nos comunicaremos contigo pronto.");
-    } else {
-      console.log("✅ ¡TODO OK! Mensaje enviado correctamente");
-      setMensajeExito(true);
+      // 2. Enviar email con Resend
+      console.log("🟢 Enviando a API de contacto...");
       
-      // Limpiar formulario
-      setFormData({
-        nombre: "",
-        email: "",
-        asunto: "",
-        mensaje: ""
+      const response = await fetch('/api/contacto', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      console.log("📊 Status de respuesta:", response.status);
+      console.log("📊 Headers:", Object.fromEntries(response.headers.entries()));
+
+      const result = await response.json();
+      console.log("📦 Respuesta de API:", result);
+
+      if (!response.ok) {
+        console.warn("⚠️ Error en API:", result);
+        setMensajeError("El mensaje se guardó pero hubo un problema al enviar la notificación por email. Nos comunicaremos contigo pronto.");
+      } else {
+        console.log("✅ ¡TODO OK! Mensaje enviado correctamente");
+        setMensajeExito(true);
+        
+        // Limpiar formulario
+        setFormData({
+          nombre: "",
+          email: "",
+          asunto: "",
+          mensaje: ""
+        });
+        
+        setTimeout(() => setMensajeExito(false), 5000);
+      }
+    } catch (error: any) {
+      console.error("❌ Error en catch:", {
+        name: error?.name,
+        message: error?.message,
+        stack: error?.stack,
+        error: error
       });
       
-      setTimeout(() => setMensajeExito(false), 5000);
+      // Mensaje más específico según el error
+      if (error?.message?.includes('Supabase')) {
+        setMensajeError("Error al guardar en la base de datos. Intenta de nuevo.");
+      } else if (error?.message?.includes('fetch') || error?.message?.includes('network')) {
+        setMensajeError("Error de conexión. Verifica tu internet.");
+      } else {
+        setMensajeError("Error al enviar el mensaje. Intenta de nuevo.");
+      }
+    } finally {
+      setEnviando(false);
+      console.log("🏁 ===== FIN ENVÍO =====\n");
     }
-  } catch (error: any) {
-    console.error("❌ Error en catch:", {
-      name: error?.name,
-      message: error?.message,
-      stack: error?.stack,
-      error: error
-    });
-    
-    // Mensaje más específico según el error
-    if (error?.message?.includes('Supabase')) {
-      setMensajeError("Error al guardar en la base de datos. Intenta de nuevo.");
-    } else if (error?.message?.includes('fetch') || error?.message?.includes('network')) {
-      setMensajeError("Error de conexión. Verifica tu internet.");
-    } else {
-      setMensajeError("Error al enviar el mensaje. Intenta de nuevo.");
-    }
-  } finally {
-    setEnviando(false);
-    console.log("🏁 ===== FIN ENVÍO =====\n");
-  }
-};
+  };
 
   // Función para renderizar icono de red social
   const renderIconoSocial = (icono: string) => {
@@ -251,16 +252,25 @@ export default function ContactoPage() {
     }
   };
 
+  // Prevenir hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500">Cargando...</div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Cargando...</p>
+        <div className="text-gray-500">Cargando...</div>
       </div>
     );
   }
 
   return (
-    <>
+    <main>
       {/* Hero con fondo de puntos */}
       <section className="bg-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
@@ -498,6 +508,6 @@ export default function ContactoPage() {
           </div>
         </section>
       )}
-    </>
+    </main>
   );
 }
