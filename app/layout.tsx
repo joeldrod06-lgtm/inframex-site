@@ -8,7 +8,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className="min-h-screen bg-gray-50 overflow-x-hidden">
+      <body className="min-h-screen overflow-x-hidden">
         {children}
       </body>
     </html>
