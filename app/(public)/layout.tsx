@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
-export const metadata = {
+export const viewport = {
   themeColor: "#111827",
 };
 
