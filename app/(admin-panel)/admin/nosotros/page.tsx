@@ -1,7 +1,9 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin-api-client";
+
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { requireAdminSession } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -65,9 +67,9 @@ export default function AdminNosotrosPage() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const { data: sessionData } = await supabase.auth.getSession();
+        const adminCheck = await requireAdminSession();
         
-        if (!sessionData.session) {
+        if (!adminCheck.ok) {
           router.replace("/admin/login");
           return;
         }
@@ -85,40 +87,13 @@ export default function AdminNosotrosPage() {
   const cargarDatos = async () => {
     try {
       setLoading(true);
-
-      // Cargar historia
-      const { data: historiaData } = await supabase
-        .from("nosotros_historia")
-        .select("*")
-        .eq("id", 1)
-        .single();
-      
-      if (historiaData) setHistoria(historiaData);
-
-      // Cargar valores
-      const { data: valoresData } = await supabase
-        .from("nosotros_valores")
-        .select("*")
-        .order("orden");
-      
-      if (valoresData) setValores(valoresData);
-
-      // Cargar equipo
-      const { data: equipoData } = await supabase
-        .from("nosotros_equipo")
-        .select("*")
-        .order("orden");
-      
-      if (equipoData) setEquipo(equipoData);
-
-      // Cargar metas
-      const { data: metasData } = await supabase
-        .from("nosotros_metas")
-        .select("*")
-        .order("orden");
-      
-      if (metasData) setMetas(metasData);
-
+      const res = await adminFetch("/api/admin/nosotros");
+      const result = await res.json();
+      if (!res.ok) throw new Error(result?.error || "Error");
+      setHistoria(result.historia || null);
+      setValores(result.valores || []);
+      setEquipo(result.equipo || []);
+      setMetas(result.metas || []);
     } catch (error) {
       console.error("Error cargando datos:", error);
     } finally {
@@ -141,7 +116,7 @@ export default function AdminNosotrosPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-semibold">Administrar Página Nosotros</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Edita el contenido que se muestra en la página "Nosotros"
+          Edita el contenido que se muestra en la página Nosotros
         </p>
       </div>
 
@@ -381,3 +356,6 @@ export default function AdminNosotrosPage() {
     </div>
   );
 }
+
+
+

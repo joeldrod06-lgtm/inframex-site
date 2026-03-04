@@ -1,7 +1,9 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin-api-client";
+
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { requireAdminSession } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 
 // Importar modales
@@ -67,9 +69,9 @@ export default function AdminContactoPage() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const { data: sessionData } = await supabase.auth.getSession();
+        const adminCheck = await requireAdminSession();
         
-        if (!sessionData.session) {
+        if (!adminCheck.ok) {
           router.replace("/admin/login");
           return;
         }
@@ -87,35 +89,13 @@ export default function AdminContactoPage() {
   const cargarDatos = async () => {
     try {
       setLoading(true);
-
-      // Cargar info de contacto
-      const { data: infoData } = await supabase
-        .from("contacto_info")
-        .select("*")
-        .eq("id", 1)
-        .single();
-      
-      if (infoData) setInfo(infoData);
-
-      // Cargar redes sociales
-      const { data: redesData } = await supabase
-        .from("contacto_redes")
-        .select("*")
-        .order("orden");
-      
-      if (redesData) setRedes(redesData);
-
-      // Cargar mensajes
-      const { data: mensajesData } = await supabase
-        .from("contacto_mensajes")
-        .select("*")
-        .order("created_at", { ascending: false });
-      
-      if (mensajesData) {
-        setMensajes(mensajesData);
-        setMensajesNoLeidos(mensajesData.filter(m => !m.leido).length);
-      }
-
+      const res = await adminFetch("/api/admin/contacto");
+      const result = await res.json();
+      if (!res.ok) throw new Error(result?.error || "Error");
+      setInfo(result.info || null);
+      setRedes(result.redes || []);
+      setMensajes(result.mensajes || []);
+      setMensajesNoLeidos((result.mensajes || []).filter((m: Mensaje) => !m.leido).length);
     } catch (error) {
       console.error("Error cargando datos:", error);
     } finally {
@@ -346,3 +326,6 @@ export default function AdminContactoPage() {
     </div>
   );
 }
+
+
+

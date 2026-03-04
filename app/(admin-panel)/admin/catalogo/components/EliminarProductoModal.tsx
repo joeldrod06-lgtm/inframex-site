@@ -1,12 +1,14 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin-api-client";
+
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 interface Producto {
   id: number;
   nombre: string;
-  imagen?: string | null;
+  imagen_principal?: string | null;
 }
 
 interface EliminarProductoModalProps {
@@ -22,34 +24,25 @@ export default function EliminarProductoModal({ producto, onClose, onProductoEli
     try {
       setLoading(true);
 
-      // Eliminar imagen de Storage si existe
-      if (producto.imagen) {
-        const fileName = producto.imagen.split('/').pop();
+      if (producto.imagen_principal) {
+        const fileName = producto.imagen_principal.split('/').pop();
         if (fileName) {
-          await supabase.storage
-            .from("productos")
-            .remove([fileName]);
+          await supabase.storage.from("productos").remove([fileName]);
         }
       }
 
-      // Eliminar producto de la base de datos
-      const { error } = await supabase
-        .from("productos")
-        .delete()
-        .eq("id", producto.id);
+      const response = await adminFetch("/api/admin/productos", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: producto.id }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.error || "Error al eliminar");
 
-      if (error) {
-        console.error("Error al eliminar:", error);
-        alert("Error al eliminar el producto: " + error.message);
-        return;
-      }
-
-      alert("Producto eliminado correctamente");
       onProductoEliminado();
       onClose();
-    } catch (err) {
-      console.error("Error inesperado:", err);
-      alert("Error inesperado al eliminar el producto");
+    } catch {
+      alert("Error al eliminar el producto");
     } finally {
       setLoading(false);
     }
@@ -58,27 +51,16 @@ export default function EliminarProductoModal({ producto, onClose, onProductoEli
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl">
-        <h3 className="text-lg font-semibold mb-2">Confirmar eliminación</h3>
-        <p className="text-gray-600 mb-6">
-          ¿Estás seguro de que deseas eliminar el producto <span className="font-medium">"{producto.nombre}"</span>? Esta acción no se puede deshacer.
-        </p>
+        <h3 className="text-lg font-semibold mb-2">Confirmar eliminacion</h3>
+        <p className="text-gray-600 mb-6">Seguro que deseas eliminar <span className="font-medium">{producto.nombre}</span>?</p>
         <div className="flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50 transition"
-            disabled={loading}
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleEliminar}
-            disabled={loading}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
-          >
-            {loading ? "Eliminando..." : "Eliminar"}
-          </button>
+          <button onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50" disabled={loading}>Cancelar</button>
+          <button onClick={handleEliminar} disabled={loading} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">{loading ? "Eliminando..." : "Eliminar"}</button>
         </div>
       </div>
     </div>
   );
 }
+
+
+

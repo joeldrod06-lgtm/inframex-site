@@ -1,7 +1,9 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin-api-client";
+
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { requireAdminSession } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import CrearProductoModal from "./components/CrearProductoModal";
@@ -30,9 +32,9 @@ export default function AdminCatalogo() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const { data: sessionData } = await supabase.auth.getSession();
+        const adminCheck = await requireAdminSession();
         
-        if (!sessionData.session) {
+        if (!adminCheck.ok) {
           router.replace("/admin/login");
           return;
         }
@@ -51,19 +53,13 @@ export default function AdminCatalogo() {
     try {
       setLoading(true);
       setError(null);
-      
-      const { data, error } = await supabase
-        .from("productos")
-        .select("*")
-        .order("id", { ascending: false });
-
-      if (error) {
-        console.error("Error al traer productos:", error);
-        setError("Error al cargar los productos: " + error.message);
+      const res = await adminFetch("/api/admin/catalogo");
+      const result = await res.json();
+      if (!res.ok) {
+        setError("Error al cargar los productos: " + (result?.error || "Error"));
         return;
       }
-
-      setProductos(data || []);
+      setProductos(result.productos || []);
     } catch (err) {
       console.error("Error inesperado:", err);
       setError("Error inesperado al cargar los productos");
@@ -166,9 +162,9 @@ export default function AdminCatalogo() {
               className="bg-white border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
             >
               <div className="relative h-48 bg-gray-100">
-                {producto.imagen ? (
+                {producto.imagen_principal ? (
                   <Image
-                    src={producto.imagen}
+                    src={producto.imagen_principal}
                     alt={producto.nombre}
                     fill
                     className="object-cover"
@@ -188,9 +184,9 @@ export default function AdminCatalogo() {
                   {producto.nombre}
                 </h3>
                 
-                {producto.descripcion && (
+                {producto.descripcion_corta && (
                   <p className="text-sm text-gray-500 mb-2 line-clamp-2">
-                    {producto.descripcion}
+                    {producto.descripcion_corta}
                   </p>
                 )}
                 
@@ -245,3 +241,6 @@ export default function AdminCatalogo() {
     </div>
   );
 }
+
+
+

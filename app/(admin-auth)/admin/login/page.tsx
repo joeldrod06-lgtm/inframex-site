@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { requireAdminSession } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -19,19 +20,32 @@ export default function LoginPage() {
       password,
     });
 
-    setLoading(false);
-
     if (error) {
+      setLoading(false);
       alert(error.message);
       return;
     }
 
+    const adminCheck = await requireAdminSession();
+
+    if (!adminCheck.ok) {
+      await supabase.auth.signOut();
+      setLoading(false);
+
+      if (adminCheck.reason === "profile_missing") {
+        alert("Tu usuario no tiene perfil en la tabla perfiles. Crea el registro y asigna rol='admin'.");
+      } else {
+        alert("Tu usuario no tiene permisos de administrador (rol='admin').");
+      }
+      return;
+    }
+
     if (data.session) {
-      // Guardamos los tokens para futuras renovaciones
       localStorage.setItem("refresh_token", data.session.refresh_token);
       localStorage.setItem("access_token", data.session.access_token);
     }
 
+    setLoading(false);
     router.push("/admin/cotizaciones");
   };
 
@@ -41,9 +55,7 @@ export default function LoginPage() {
         onSubmit={handleLogin}
         className="bg-white p-8 rounded-xl shadow-md w-full max-w-sm space-y-4"
       >
-        <h2 className="text-2xl font-light text-center">
-          Admin INFRAMEX
-        </h2>
+        <h2 className="text-2xl font-light text-center">Admin INFRAMEX</h2>
 
         <input
           type="email"
@@ -56,7 +68,7 @@ export default function LoginPage() {
 
         <input
           type="password"
-          placeholder="Contraseña"
+          placeholder="Contrasena"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required

@@ -1,7 +1,8 @@
 "use client";
 
+import { adminFetch } from "@/lib/admin-api-client";
+
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 
 interface RedSocial {
   id: number;
@@ -35,31 +36,16 @@ export default function ModalRedSocial({ red, onClose, onGuardado }: Props) {
         return;
       }
 
-      if (isEditing) {
-        const { error } = await supabase
-          .from("contacto_redes")
-          .update({ nombre, url, icono, activo })
-          .eq("id", red.id);
+      const response = await adminFetch("/api/admin/contacto/redes", {
+        method: isEditing ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: red?.id, nombre, url, icono, activo }),
+      });
 
-        if (error) throw error;
-        alert("Red social actualizada");
-      } else {
-        const { data: maxOrdenData } = await supabase
-          .from("contacto_redes")
-          .select("orden")
-          .order("orden", { ascending: false })
-          .limit(1);
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.error || "Error al guardar");
 
-        const nuevoOrden = maxOrdenData && maxOrdenData.length > 0 ? maxOrdenData[0].orden + 1 : 1;
-
-        const { error } = await supabase
-          .from("contacto_redes")
-          .insert([{ nombre, url, icono, activo, orden: nuevoOrden }]);
-
-        if (error) throw error;
-        alert("Red social creada");
-      }
-
+      alert(isEditing ? "Red social actualizada" : "Red social creada");
       onGuardado();
       onClose();
     } catch (error) {
@@ -72,16 +58,18 @@ export default function ModalRedSocial({ red, onClose, onGuardado }: Props) {
 
   const handleEliminar = async () => {
     if (!isEditing) return;
-    if (!confirm("¿Eliminar esta red social?")) return;
+    if (!confirm("Eliminar esta red social?")) return;
 
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from("contacto_redes")
-        .delete()
-        .eq("id", red.id);
+      const response = await adminFetch("/api/admin/contacto/redes", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: red?.id }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.error || "Error al eliminar");
 
-      if (error) throw error;
       alert("Red social eliminada");
       onGuardado();
       onClose();
@@ -94,102 +82,43 @@ export default function ModalRedSocial({ red, onClose, onGuardado }: Props) {
   };
 
   const iconos = [
-    { value: "facebook", label: "Facebook", emoji: "📘" },
-    { value: "instagram", label: "Instagram", emoji: "📷" },
-    { value: "twitter", label: "Twitter / X", emoji: "🐦" },
-    { value: "tiktok", label: "TikTok", emoji: "🎵" },
-    { value: "youtube", label: "YouTube", emoji: "▶️" },
-    { value: "linkedin", label: "LinkedIn", emoji: "💼" },
-    { value: "whatsapp", label: "WhatsApp", emoji: "📱" },
+    { value: "facebook", label: "Facebook" },
+    { value: "instagram", label: "Instagram" },
+    { value: "twitter", label: "Twitter / X" },
+    { value: "tiktok", label: "TikTok" },
+    { value: "youtube", label: "YouTube" },
+    { value: "linkedin", label: "LinkedIn" },
+    { value: "whatsapp", label: "WhatsApp" },
   ];
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl">
-        <h2 className="text-xl font-semibold mb-4">
-          {isEditing ? "Editar" : "Nueva"} Red Social
-        </h2>
+        <h2 className="text-xl font-semibold mb-4">{isEditing ? "Editar" : "Nueva"} Red Social</h2>
 
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
-            <input
-              type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Facebook"
-              className="w-full border rounded-lg px-3 py-2"
-              disabled={loading}
-            />
-          </div>
+          <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre" className="w-full border rounded-lg px-3 py-2" disabled={loading} />
+          <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="URL" className="w-full border rounded-lg px-3 py-2" disabled={loading} />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">URL *</label>
-            <input
-              type="url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://facebook.com/inframex"
-              className="w-full border rounded-lg px-3 py-2"
-              disabled={loading}
-            />
-          </div>
+          <select value={icono} onChange={(e) => setIcono(e.target.value)} className="w-full border rounded-lg px-3 py-2" disabled={loading}>
+            {iconos.map((i) => (<option key={i.value} value={i.value}>{i.label}</option>))}
+          </select>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Icono</label>
-            <select
-              value={icono}
-              onChange={(e) => setIcono(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2"
-              disabled={loading}
-            >
-              {iconos.map((i) => (
-                <option key={i.value} value={i.value}>
-                  {i.emoji} {i.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="activo"
-              checked={activo}
-              onChange={(e) => setActivo(e.target.checked)}
-              className="mr-2"
-              disabled={loading}
-            />
-            <label htmlFor="activo" className="text-sm text-gray-700">Activo (mostrar en la página)</label>
-          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={activo} onChange={(e) => setActivo(e.target.checked)} disabled={loading} />
+            Activo
+          </label>
 
           <div className="flex justify-end gap-3 pt-4">
-            {isEditing && (
-              <button
-                onClick={handleEliminar}
-                disabled={loading}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-              >
-                Eliminar
-              </button>
-            )}
-            <button
-              onClick={onClose}
-              className="px-4 py-2 border rounded-lg hover:bg-gray-50"
-              disabled={loading}
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleGuardar}
-              disabled={loading}
-              className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
-            >
-              {loading ? "Guardando..." : isEditing ? "Guardar" : "Crear"}
-            </button>
+            {isEditing && <button onClick={handleEliminar} disabled={loading} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">Eliminar</button>}
+            <button onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50" disabled={loading}>Cancelar</button>
+            <button onClick={handleGuardar} disabled={loading} className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50">{loading ? "Guardando..." : isEditing ? "Guardar" : "Crear"}</button>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+
+

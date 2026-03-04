@@ -12,13 +12,9 @@ interface PublicLayoutProps {
 
 export default function PublicLayout({ children }: PublicLayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-white text-gray-900">
       <Navbar />
-
-      <main className="flex-1 pb-4">
-        {children}
-      </main>
-
+      <main className="flex-1 pb-4">{children}</main>
       <Footer />
     </div>
   );

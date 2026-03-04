@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { adminFetch } from "@/lib/admin-api-client";
+
+import { useCallback, useEffect, useState } from "react";
+import { requireAdminSession } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 
 interface Cotizacion {
@@ -26,9 +28,9 @@ export default function AdminCotizaciones() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
+      const adminCheck = await requireAdminSession();
 
-      if (!data.session) {
+      if (!adminCheck.ok) {
         router.replace("/admin/login");
         return;
       }
@@ -37,25 +39,16 @@ export default function AdminCotizaciones() {
     };
 
     checkSession();
-  }, []);
-
-  useEffect(() => {
-    filterCotizaciones();
-  }, [cotizaciones, searchTerm, dateFilter]);
+  }, [router]);
 
   const loadCotizaciones = async () => {
     try {
       setLoading(true);
-
-      const { data, error } = await supabase
-        .from("cotizaciones")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (!error) {
-        setCotizaciones(data || []);
-        setFilteredCotizaciones(data || []);
-      }
+      const res = await adminFetch("/api/admin/cotizaciones");
+      const result = await res.json();
+      if (!res.ok) throw new Error(result?.error || "Error");
+      setCotizaciones(result.cotizaciones || []);
+      setFilteredCotizaciones(result.cotizaciones || []);
     } catch (err) {
       console.error("Error inesperado:", err);
     } finally {
@@ -63,7 +56,7 @@ export default function AdminCotizaciones() {
     }
   };
 
-  const filterCotizaciones = () => {
+  const filterCotizaciones = useCallback(() => {
     let filtered = [...cotizaciones];
 
     // Filtro por búsqueda
@@ -86,19 +79,23 @@ export default function AdminCotizaciones() {
     }
 
     setFilteredCotizaciones(filtered);
-  };
+  }, [cotizaciones, searchTerm, dateFilter]);
+  useEffect(() => {
+    filterCotizaciones();
+  }, [filterCotizaciones]);
 
   const handleDelete = async () => {
     if (!selectedCotizacion) return;
 
     try {
       setDeleting(true);
-      const { error } = await supabase
-        .from("cotizaciones")
-        .delete()
-        .eq("id", selectedCotizacion.id);
+      const response = await adminFetch("/api/admin/mensajes-contacto", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedCotizacion.id }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error("Error al eliminar");
 
       await loadCotizaciones();
       setShowDeleteModal(false);
@@ -378,3 +375,10 @@ export default function AdminCotizaciones() {
     </div>
   );
 }
+
+
+
+
+
+
+

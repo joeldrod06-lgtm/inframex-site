@@ -3,16 +3,16 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { requireAdminSession } from "@/lib/auth";
 
 export default function AdminRootRedirect() {
   const router = useRouter();
 
   useEffect(() => {
     const checkSessionAndRedirect = async () => {
-      const { data } = await supabase.auth.getSession();
+      const adminCheck = await requireAdminSession();
 
-      if (!data.session) {
+      if (!adminCheck.ok) {
         router.replace("/admin/login");
         return;
       }
